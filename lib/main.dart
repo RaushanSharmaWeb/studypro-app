@@ -38,10 +38,6 @@ class AppService {
     );
   }
 
-  static Future<void> deleteBatch(String id) async {
-    await http.delete(Uri.parse("${FirebaseConfig.dbUrl}/batches/$id.json"));
-  }
-
   static Future<String> getAdminPin() async {
     try {
       final res = await http.get(Uri.parse("${FirebaseConfig.dbUrl}/settings/adminPin.json"));
@@ -52,7 +48,6 @@ class AppService {
     return "1234";
   }
 
-  // Firebase Auth REST API + Local Users Fallback
   static Future<String?> authenticate({
     required String email,
     required String password,
@@ -71,14 +66,12 @@ class AppService {
           "returnSecureToken": true,
         }),
       );
-      final data = jsonDecode(res.body);
       if (res.statusCode == 200) {
-        return null; // Success
+        return null;
       } else {
-        // Fallback to Realtime DB users node if Firebase Auth Email/Pass is not enabled in console yet
         return await _fallbackDbAuth(email.trim(), password.trim(), isSignUp);
       }
-    } catch (e) {
+    } catch (_) {
       return await _fallbackDbAuth(email.trim(), password.trim(), isSignUp);
     }
   }
@@ -302,7 +295,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             const Icon(Icons.error_outline, color: Colors.redAccent, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                              child: Text(_error!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
                             ),
                           ],
                         ),
@@ -409,12 +403,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   bool _loading = true;
   String _searchQuery = "";
 
-  // Pomodoro Timer State
   int _pomoSeconds = 25 * 60;
   bool _pomoRunning = false;
   Timer? _pomoTimer;
-
-  // Resume State
   Map<String, dynamic>? _resumeData;
 
   @override
@@ -556,7 +547,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
             const SizedBox(width: 8),
             const Text("StudyPro", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             const Spacer(),
-            // Compact Pomodoro Pill
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -568,7 +558,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                 children: [
                   Text(
                     _formatPomo(_pomoSeconds),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
                   ),
                   const SizedBox(width: 4),
                   InkWell(
@@ -593,17 +584,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           IconButton(
             icon: Icon(widget.isDark ? Icons.light_mode : Icons.dark_mode, size: 20),
             onPressed: widget.onToggleTheme,
-            tooltip: "Toggle Theme",
           ),
           IconButton(
             icon: const Icon(Icons.admin_panel_settings_outlined, size: 22),
             onPressed: _openAdminPanel,
-            tooltip: "Admin Panel",
           ),
           IconButton(
             icon: const Icon(Icons.logout, size: 20),
             onPressed: widget.onLogout,
-            tooltip: "Logout",
           ),
         ],
       ),
@@ -612,7 +600,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Resume Banner if available
             if (_resumeData != null && _batches.containsKey(_resumeData!['batchId']))
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
@@ -674,8 +661,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                   ],
                 ),
               ),
-
-            // Search Bar
             TextField(
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
@@ -689,7 +674,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               ),
             ),
             const SizedBox(height: 18),
-
             if (_loading)
               const Padding(
                 padding: EdgeInsets.all(40),
@@ -738,7 +722,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                           AspectRatio(
                             aspectRatio: 16 / 9,
                             child: Image.network(
-                              b['thumbnail'],
+                              b['thumbnail'].toString(),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: Colors.indigo.withOpacity(0.2),
@@ -754,7 +738,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF6366F1).withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(6),
@@ -770,7 +755,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: Colors.teal.withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(6),
@@ -807,13 +793,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF6366F1),
                                     foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10)),
                                   ),
                                   onPressed: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => BatchClassroomScreen(batchId: bId, batchData: b),
+                                        builder: (_) =>
+                                            BatchClassroomScreen(batchId: bId, batchData: b),
                                       ),
                                     ).then((_) => _loadData());
                                   },
@@ -889,7 +877,8 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
 
     final subjectsMap = widget.batchData['subjects'] as Map?;
     if (subjectsMap != null && subjectsMap.isNotEmpty) {
-      final firstSubId = widget.initialResume?['subjectId'] ?? subjectsMap.keys.first.toString();
+      final firstSubId =
+          widget.initialResume?['subjectId']?.toString() ?? subjectsMap.keys.first.toString();
       await _selectSubject(firstSubId);
     } else if (widget.batchData['playlistId'] != null &&
         widget.batchData['playlistId'].toString().isNotEmpty) {
@@ -917,6 +906,10 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
     });
 
     final subjectsMap = Map<String, dynamic>.from(widget.batchData['subjects'] as Map);
+    if (!subjectsMap.containsKey(subjectId)) {
+      setState(() => _loadingPlaylist = false);
+      return;
+    }
     final sub = Map<String, dynamic>.from(subjectsMap[subjectId] as Map);
     final subName = (sub['name'] ?? subjectId).toString();
     final contents = sub['contents'] as Map?;
@@ -929,7 +922,8 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
         for (final entry in contents.entries) {
           final item = Map<String, dynamic>.from(entry.value as Map);
           final type = (item['type'] ?? 'video').toString();
-          final targetId = (item['ytId'] ?? item['playlistId'] ?? item['videoId'] ?? '').toString();
+          final targetId =
+              (item['ytId'] ?? item['playlistId'] ?? item['videoId'] ?? '').toString();
           final customTitle = (item['title'] ?? 'Lecture').toString();
 
           if (type == 'playlist' && targetId.isNotEmpty) {
@@ -1086,7 +1080,6 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
       ),
       body: Column(
         children: [
-          // Sticky Native Video Player at the Top
           if (_activeLecture != null)
             NativeStudyPlayer(
               key: _playerKey,
@@ -1110,13 +1103,10 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                 ),
               ),
             ),
-
-          // Scrollable Subjects, Active Info, Notes & Playlist below
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(14),
               children: [
-                // Subject Horizontal Pills
                 if (subjectsMap != null && subjectsMap.isNotEmpty) ...[
                   SizedBox(
                     height: 46,
@@ -1144,8 +1134,6 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                   ),
                   const SizedBox(height: 14),
                 ],
-
-                // Current Lecture Card + Mark Completed
                 if (_activeLecture != null)
                   Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -1182,10 +1170,7 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                       ),
                     ),
                   ),
-
                 const SizedBox(height: 12),
-
-                // Timestamped Notes Card
                 Card(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   child: Padding(
@@ -1197,7 +1182,8 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                           children: [
                             Icon(Icons.bookmark_added, size: 18, color: Color(0xFF6366F1)),
                             SizedBox(width: 8),
-                            Text("My Timestamped Notes", style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text("My Timestamped Notes",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -1206,7 +1192,8 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                           decoration: InputDecoration(
                             hintText: "Write a formula or key point...",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -1249,11 +1236,10 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-                const Text("Course Lectures", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text("Course Lectures",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 8),
-
                 if (_loadingPlaylist)
                   const Padding(
                     padding: EdgeInsets.all(24),
@@ -1271,7 +1257,9 @@ class _BatchClassroomScreenState extends State<BatchClassroomScreen> {
                       child: ListTile(
                         onTap: () => _playLecture(lec),
                         leading: CircleAvatar(
-                          backgroundColor: isPlaying ? const Color(0xFF6366F1) : Colors.grey.withOpacity(0.2),
+                          backgroundColor: isPlaying
+                              ? const Color(0xFF6366F1)
+                              : Colors.grey.withOpacity(0.2),
                           child: Icon(
                             isPlaying ? Icons.equalizer : Icons.play_arrow,
                             color: Colors.white,
@@ -1332,7 +1320,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
   bool _loadingStream = true;
   String? _errorMsg;
 
-  // Streams by quality label (e.g. "360p", "720p")
   Map<String, String> _qualityUrls = {};
   String _selectedQuality = "Auto";
 
@@ -1376,15 +1363,8 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
       final manifest = await ytExplode.videos.streamsClient.getManifest(videoId);
       final Map<String, String> qualities = {};
 
-      // Collect Muxed streams (Audio + Video together)
       for (final s in manifest.muxed.sortByVideoQuality()) {
         qualities[s.qualityLabel] = s.url.toString();
-      }
-
-      if (qualities.isEmpty && manifest.hls.isNotEmpty) {
-        for (final h in manifest.hls) {
-          qualities["Auto"] = h.url.toString();
-        }
       }
 
       if (qualities.isEmpty) {
@@ -1396,7 +1376,7 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
       _selectedQuality = defaultQuality;
 
       await _initializeVideoUrl(qualities[defaultQuality]!, seekToSec: startAt);
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
           _loadingStream = false;
@@ -1445,7 +1425,7 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
     await _initializeVideoUrl(url, seekToSec: currentPos);
   }
 
-  void _ setSpeed(double speed) {
+  void _setSpeed(double speed) {
     setState(() => _playbackSpeed = speed);
     _controller?.setPlaybackSpeed(speed);
   }
@@ -1457,7 +1437,9 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
   void _skipSeconds(int delta) {
     final ctrl = _controller;
     if (ctrl == null || !ctrl.value.isInitialized) return;
-    final target = (ctrl.value.position.inSeconds + delta).clamp(0, ctrl.value.duration.inSeconds);
+    final int target = (ctrl.value.position.inSeconds + delta)
+        .clamp(0, ctrl.value.duration.inSeconds)
+        .toInt();
     ctrl.seekTo(Duration(seconds: target));
     setState(() => _seekRippleText = delta > 0 ? "+${delta}s ⏩" : "⏪ ${delta}s");
     Future.delayed(const Duration(milliseconds: 650), () {
@@ -1489,13 +1471,7 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
       MaterialPageRoute(
         builder: (_) => Scaffold(
           backgroundColor: Colors.black,
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            left: false,
-            right: false,
-            child: _buildPlayerBody(isFullScreen: true),
-          ),
+          body: _buildPlayerBody(isFullScreen: true),
         ),
       ),
     );
@@ -1514,6 +1490,12 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
   Widget _buildPlayerBody({required bool isFullScreen}) {
     final ctrl = _controller;
     final isReady = ctrl != null && ctrl.value.isInitialized && !_loadingStream;
+    final double maxSec = isReady && ctrl.value.duration.inSeconds > 0
+        ? ctrl.value.duration.inSeconds.toDouble()
+        : 1.0;
+    final double posSec = isReady
+        ? ctrl.value.position.inSeconds.toDouble().clamp(0.0, maxSec).toDouble()
+        : 0.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -1524,7 +1506,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
           _resetHideTimer();
         }
       },
-      // Double-Tap Left/Right to Seek ±10s
       onDoubleTapDown: (details) {
         final width = MediaQuery.of(context).size.width;
         if (details.localPosition.dx < width * 0.4) {
@@ -1533,7 +1514,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
           _skipSeconds(10);
         }
       },
-      // Hold anywhere for 2x Speed
       onLongPressStart: (_) {
         if (!isReady) return;
         _preHoldSpeed = _playbackSpeed;
@@ -1552,7 +1532,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Video Surface with Zoom/Fill Support
             if (isReady)
               ClipRect(
                 child: Transform.scale(
@@ -1563,8 +1542,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                   ),
                 ),
               ),
-
-            // Perfectly Circular Loading Spinner
             if (_loadingStream || (isReady && ctrl.value.isBuffering))
               Container(
                 width: 52,
@@ -1579,8 +1556,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                   color: Color(0xFF6366F1),
                 ),
               ),
-
-            // Error View
             if (_errorMsg != null)
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1595,8 +1570,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                   ),
                 ],
               ),
-
-            // 2X Hold Badge
             if (_isHolding2x)
               Positioned(
                 top: 16,
@@ -1613,14 +1586,13 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                       SizedBox(width: 4),
                       Text(
                         "2X Speed",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
               ),
-
-            // Double-Tap Seek Ripple Badge
             if (_seekRippleText != null)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -1630,18 +1602,16 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                 ),
                 child: Text(
                   _seekRippleText!,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
-
-            // Custom Controls Overlay (Circular Buttons + 2-Row Mobile Layout)
             if (_showControls && isReady)
               Container(
                 color: Colors.black45,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Top Bar: Video Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(
@@ -1666,8 +1636,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                         ],
                       ),
                     ),
-
-                    // Center Circular Play/Pause & Skip Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1678,7 +1646,9 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                         ),
                         const SizedBox(width: 28),
                         _circleControlBtn(
-                          icon: ctrl.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                          icon: ctrl.value.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
                           size: 56,
                           bgColor: const Color(0xFF6366F1),
                           onTap: () {
@@ -1698,14 +1668,11 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                         ),
                       ],
                     ),
-
-                    // Bottom 2-Row Control Bar
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Row 1: Timestamp + Smooth Seekbar
                           Row(
                             children: [
                               Text(
@@ -1721,17 +1688,17 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
                                     trackHeight: 3,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                    thumbShape:
+                                        const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                    overlayShape:
+                                        const RoundSliderOverlayShape(overlayRadius: 12),
                                   ),
                                   child: Slider(
                                     activeColor: const Color(0xFF6366F1),
                                     inactiveColor: Colors.white30,
-                                    min: 0,
-                                    max: ctrl.value.duration.inSeconds.toDouble().clamp(1, double.infinity),
-                                    value: ctrl.value.position.inSeconds
-                                        .toDouble()
-                                        .clamp(0, ctrl.value.duration.inSeconds.toDouble().clamp(1, double.infinity)),
+                                    min: 0.0,
+                                    max: maxSec,
+                                    value: posSec,
                                     onChanged: (val) {
                                       ctrl.seekTo(Duration(seconds: val.toInt()));
                                       _resetHideTimer();
@@ -1741,8 +1708,6 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                               ),
                             ],
                           ),
-
-                          // Row 2: Speed, Quality, Zoom Fit, and Fullscreen
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -1755,40 +1720,35 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  ctrl.setVolume(ctrl.value.volume > 0 ? 0 : 1.0);
+                                  ctrl.setVolume(ctrl.value.volume > 0 ? 0.0 : 1.0);
                                   _resetHideTimer();
                                 },
                               ),
                               Row(
                                 children: [
-                                  // Playback Speed Selector
                                   PopupMenuButton<double>(
                                     onSelected: _setSpeed,
                                     itemBuilder: (_) => [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
-                                        .map((s) => PopupMenuItem(value: s, child: Text("${s}x Speed")))
+                                        .map((s) => PopupMenuItem<double>(
+                                            value: s, child: Text("${s}x Speed")))
                                         .toList(),
                                     child: _pillBadge("${_playbackSpeed}x"),
                                   ),
                                   const SizedBox(width: 8),
-
-                                  // Real Quality Selector
                                   PopupMenuButton<String>(
                                     onSelected: _changeQuality,
                                     itemBuilder: (_) => _qualityUrls.keys
-                                        .map((q) => PopupMenuItem(value: q, child: Text(q)))
+                                        .map((q) =>
+                                            PopupMenuItem<String>(value: q, child: Text(q)))
                                         .toList(),
                                     child: _pillBadge(_selectedQuality),
                                   ),
                                   const SizedBox(width: 8),
-
-                                  // Screen Zoom-to-Fill Button (Fixes 20:9 side black bars)
                                   InkWell(
                                     onTap: () => setState(() => _zoomToFill = !_zoomToFill),
                                     child: _pillBadge(_zoomToFill ? "Zoomed" : "Fit"),
                                   ),
                                   const SizedBox(width: 10),
-
-                                  // Fullscreen Button
                                   InkWell(
                                     onTap: () {
                                       if (isFullScreen) {
@@ -1864,7 +1824,7 @@ class _NativeStudyPlayerState extends State<NativeStudyPlayer> {
 }
 
 // ==========================================
-// 7. IN-APP ADMIN PANEL (BATCH -> SUBJECT -> PLAYLIST/VIDEO)
+// 7. IN-APP ADMIN PANEL
 // ==========================================
 class AdminPanelScreen extends StatefulWidget {
   final Map<String, dynamic> batches;
@@ -1944,7 +1904,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       body: jsonEncode({
         "id": cId,
         "type": _contentType,
-        "title": _contentTitleCtrl.text.trim().isEmpty ? "Chapter Playlist" : _contentTitleCtrl.text.trim(),
+        "title": _contentTitleCtrl.text.trim().isEmpty
+            ? "Chapter Playlist"
+            : _contentTitleCtrl.text.trim(),
         "ytId": extractedId,
       }),
     );
@@ -1974,18 +1936,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Section 1: Create Batch
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("1. Create New Batch", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text("1. Create New Batch",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _batchNameCtrl,
-                    decoration: const InputDecoration(labelText: "Batch Name (e.g., Target JEE 2027)"),
+                    decoration:
+                        const InputDecoration(labelText: "Batch Name (e.g., Target JEE 2027)"),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -1995,7 +1958,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _thumbCtrl,
-                    decoration: const InputDecoration(labelText: "Thumbnail Image URL (Optional)"),
+                    decoration:
+                        const InputDecoration(labelText: "Thumbnail Image URL (Optional)"),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -2005,29 +1969,30 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(onPressed: _createBatch, child: const Text("Save Batch")),
+                    child:
+                        ElevatedButton(onPressed: _createBatch, child: const Text("Save Batch")),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-
-          // Section 2: Add Subject to Batch
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("2. Add Subject Inside Batch", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text("2. Add Subject Inside Batch",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: _selectedBatchId,
                     hint: const Text("Select Batch"),
                     items: batchKeys.map((k) {
                       final b = Map<String, dynamic>.from(widget.batches[k] as Map);
-                      return DropdownMenuItem(value: k, child: Text((b['name'] ?? k).toString()));
+                      return DropdownMenuItem<String>(
+                          value: k, child: Text((b['name'] ?? k).toString()));
                     }).toList(),
                     onChanged: (v) => setState(() {
                       _selectedBatchId = v;
@@ -2037,20 +2002,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _subjectNameCtrl,
-                    decoration: const InputDecoration(labelText: "Subject Name (e.g., Physics, Math)"),
+                    decoration:
+                        const InputDecoration(labelText: "Subject Name (e.g., Physics, Math)"),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(onPressed: _addSubject, child: const Text("Add Subject")),
+                    child:
+                        ElevatedButton(onPressed: _addSubject, child: const Text("Add Subject")),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-
-          // Section 3: Add Playlist or Single Video to Subject
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -2067,7 +2032,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     hint: const Text("Select Subject"),
                     items: subjectsOfSelected.entries.map((e) {
                       final s = Map<String, dynamic>.from(e.value as Map);
-                      return DropdownMenuItem(value: e.key, child: Text((s['name'] ?? e.key).toString()));
+                      return DropdownMenuItem<String>(
+                          value: e.key, child: Text((s['name'] ?? e.key).toString()));
                     }).toList(),
                     onChanged: (v) => setState(() => _selectedSubjectId = v),
                   ),
@@ -2075,8 +2041,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   DropdownButtonFormField<String>(
                     value: _contentType,
                     items: const [
-                      DropdownMenuItem(value: "playlist", child: Text("YouTube Playlist")),
-                      DropdownMenuItem(value: "video", child: Text("Single Video")),
+                      DropdownMenuItem<String>(value: "playlist", child: Text("YouTube Playlist")),
+                      DropdownMenuItem<String>(value: "video", child: Text("Single Video")),
                     ],
                     onChanged: (v) => setState(() => _contentType = v ?? "playlist"),
                   ),
@@ -2088,7 +2054,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _contentUrlCtrl,
-                    decoration: const InputDecoration(labelText: "YouTube Playlist or Video URL / ID"),
+                    decoration:
+                        const InputDecoration(labelText: "YouTube Playlist or Video URL / ID"),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -2107,4 +2074,3 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 }
-  
