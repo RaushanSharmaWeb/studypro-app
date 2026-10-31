@@ -18,29 +18,32 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Flutter
+      - name: Set up Flutter Stable
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.24.5'
           channel: 'stable'
 
-      - name: Generate Android Platform Files & Keep Custom Code
+      - name: Create Android Project & Resolve Dependencies
         run: |
-          cp pubspec.yaml pubspec.yaml.bak
-          cp lib/main.dart main.dart.bak
+          if [ -f "lib/main.dart" ]; then
+            cp lib/main.dart /tmp/main.dart.bak
+          elif [ -f "Lib/main.dart" ]; then
+            cp Lib/main.dart /tmp/main.dart.bak
+          elif [ -f "main.dart" ]; then
+            cp main.dart /tmp/main.dart.bak
+          fi
+          rm -rf pubspec.yaml pubspec.lock lib Lib
           flutter create --org com.studywithpro.app --project-name study_with_pro .
-          mv pubspec.yaml.bak pubspec.yaml
-          mv main.dart.bak lib/main.dart
-          sed -i 's/<application/<uses-permission android:name="android.permission.INTERNET"\/><application/' android/app/src/main/AndroidManifest.xml
-
-      - name: Install Flutter Dependencies
-        run: flutter pub get
+          flutter pub add http shared_preferences video_player youtube_explode_dart
+          cp /tmp/main.dart.bak lib/main.dart
+          sed -i 's/<application/<uses-permission android:name="android.permission.INTERNET"\/><application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Ready-to-Install APK
         uses: actions/upload-artifact@v4
         with:
           name: StudyPro-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
-          
